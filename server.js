@@ -14,12 +14,9 @@ const app = express();
 const server = http.createServer(app);
 
 const allowedOrigins = [
-  "https://chat-apps-frontend-git-master-himankit7494-gmailcoms-projects.vercel.app",
   "https://chat-apps-frontend.vercel.app",
   "https://chat-apps-blond-one.vercel.app",
-  "https://chat-apps-backend.vercel.app",
   "http://localhost:5173",
-  "http://localhost:5174",
   "http://localhost:3000",
 ];
 
