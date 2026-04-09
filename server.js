@@ -188,6 +188,13 @@ socket.on("leave-chat", ({ userId }) => {
   delete activeChatMap[userId];
 });
 
+  // ---------------- MESSAGE DELETED ----------------
+  socket.on("messageDeleted", async (msg) => {
+    const receiverSocketId = userSocketMap[msg.receiverId];
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("messageDeleted", msg);
+    }
+  });
   
   // ---------------- DISCONNECT ----------------
   socket.on("disconnect", async () => {

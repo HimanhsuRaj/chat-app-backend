@@ -13,6 +13,10 @@ const messageSchema = new mongoose.Schema({
   enum: ["sent", "delivered", "read"],
   default: "sent",
 },
+    reactions: [{
+        userId: {type: mongoose.Schema.Types.ObjectId, ref: "User"},
+        emoji: {type: String}
+    }]
 
 },{ timestamps: true});
 

@@ -1,6 +1,6 @@
 import express from "express";
 import { protectRoute } from "../middleware/auth.js";
-import { getMessages, getUsersForSidebar, markMessagesAsSeen, sendMessage,sendAudioMessage, deleteAudioMessage } from "../controllers/messageController.js";
+import { getMessages, getUsersForSidebar, markMessagesAsSeen, sendMessage,sendAudioMessage, deleteAudioMessage, addReaction, removeReaction } from "../controllers/messageController.js";
 import multer from "multer";
 
 
@@ -18,5 +18,9 @@ messageRouter.post("/audio", upload.single("audio"), sendAudioMessage);
 
 // Delete audio msg
 messageRouter.delete("/:id", deleteAudioMessage);
+
+// Reactions
+messageRouter.post("/:id/reactions", protectRoute, addReaction);
+messageRouter.delete("/:id/reactions", protectRoute, removeReaction);
 
 export default messageRouter;

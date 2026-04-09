@@ -150,3 +150,65 @@ export const deleteAudioMessage = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const addReaction = async (req, res) => {
+  try {
+    const { emoji } = req.body;
+    const messageId = req.params.id;
+    const userId = req.user._id;
+
+    const message = await Message.findById(messageId);
+    if (!message) return res.status(404).json({ message: "Message not found" });
+
+    // Remove existing reaction from this user if any
+    message.reactions = message.reactions.filter(r => r.userId.toString() !== userId.toString());
+
+    // Add new reaction
+    message.reactions.push({ userId, emoji });
+    await message.save();
+
+    res.json({ success: true, message });
+
+    // Emit reaction update to both users
+    const receiverSocketId = userSocketMap[message.receiverId];
+    const senderSocketId = userSocketMap[message.senderId];
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("reactionUpdate", { messageId, reactions: message.reactions });
+    }
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("reactionUpdate", { messageId, reactions: message.reactions });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const removeReaction = async (req, res) => {
+  try {
+    const messageId = req.params.id;
+    const userId = req.user._id;
+
+    const message = await Message.findById(messageId);
+    if (!message) return res.status(404).json({ message: "Message not found" });
+
+    // Remove reaction from this user
+    message.reactions = message.reactions.filter(r => r.userId.toString() !== userId.toString());
+    await message.save();
+
+    res.json({ success: true, message });
+
+    // Emit reaction update to both users
+    const receiverSocketId = userSocketMap[message.receiverId];
+    const senderSocketId = userSocketMap[message.senderId];
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("reactionUpdate", { messageId, reactions: message.reactions });
+    }
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("reactionUpdate", { messageId, reactions: message.reactions });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
