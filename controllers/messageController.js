@@ -160,11 +160,26 @@ export const addReaction = async (req, res) => {
     const message = await Message.findById(messageId);
     if (!message) return res.status(404).json({ message: "Message not found" });
 
-    // Remove existing reaction from this user if any
-    message.reactions = message.reactions.filter(r => r.userId.toString() !== userId.toString());
+    const existingReaction = message.reactions.find(
+      (reaction) => reaction.userId.toString() === userId.toString(),
+    );
 
-    // Add new reaction
-    message.reactions.push({ userId, emoji });
+    if (existingReaction) {
+      if (existingReaction.emoji === emoji) {
+        message.reactions = message.reactions.filter(
+          (reaction) => reaction.userId.toString() !== userId.toString(),
+        );
+      } else {
+        message.reactions = message.reactions.map((reaction) =>
+          reaction.userId.toString() === userId.toString()
+            ? { ...reaction.toObject(), emoji }
+            : reaction,
+        );
+      }
+    } else {
+      message.reactions.push({ userId, emoji });
+    }
+
     await message.save();
 
     res.json({ success: true, message });
@@ -174,10 +189,16 @@ export const addReaction = async (req, res) => {
     const senderSocketId = userSocketMap[message.senderId];
 
     if (receiverSocketId) {
-      io.to(receiverSocketId).emit("reactionUpdate", { messageId, reactions: message.reactions });
+      io.to(receiverSocketId).emit("reactionUpdate", {
+        messageId,
+        reactions: message.reactions,
+      });
     }
     if (senderSocketId) {
-      io.to(senderSocketId).emit("reactionUpdate", { messageId, reactions: message.reactions });
+      io.to(senderSocketId).emit("reactionUpdate", {
+        messageId,
+        reactions: message.reactions,
+      });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
