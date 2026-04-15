@@ -94,10 +94,16 @@ io.on("connection", async (socket) => {
   });
 
   // ---------------- CALLS ----------------
-  socket.on("call-user", ({ to, from, peerId }) => {
+  socket.on("call-user", (data) => {
+    console.log("📞 SERVER: Received call-user:", data);
+    const { to, from, peerId, callType } = data;
     const targetSocket = userSocketMap[to];
-    if (targetSocket)
-      io.to(targetSocket).emit("incoming-call", { from, peerId });
+    if (targetSocket) {
+      console.log("📞 SERVER: Forwarding to target socket:", { from, peerId, callType });
+      io.to(targetSocket).emit("incoming-call", { from, peerId, callType });
+    } else {
+      console.log("📞 SERVER: Target socket not found for user:", to);
+    }
   });
 
   socket.on("accept-call", ({ to }) => {
